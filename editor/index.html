@@ -510,7 +510,7 @@
             notice.className = 'upgrade-notice';
             notice.innerHTML = `
                 <p>This feature requires a pro plan.</p>
-                <a href="plans.html">upgrade now →</a>
+                <a href="plans">upgrade now →</a>
             `;
             
             if (!document.querySelector('.upgrade-notice')) {
@@ -745,7 +745,7 @@
 
         // Header button functionality
         document.getElementById('previewBtn').addEventListener('click', () => {
-            window.open('preview.html', '_blank');
+            window.open('preview', '_blank');
         });
 
         document.getElementById('publishBtn').addEventListener('click', () => {
@@ -758,7 +758,7 @@
             // Check if user is logged in
             const userCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('user='));
             if (!userCookie) {
-                window.location.href = 'login.html';
+                window.location.href = 'login';
                 return;
             }
 
