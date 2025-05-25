@@ -1,3 +1,7 @@
+import { Redis } from "@upstash/redis"
+
+const redis = Redis.fromEnv()
+
 export default async function handler(req, res) {
   // Add CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -13,16 +17,10 @@ export default async function handler(req, res) {
     console.log("Environment variables check:", {
       hasKvUrl: !!process.env.KV_REST_API_URL,
       hasKvToken: !!process.env.KV_REST_API_TOKEN,
-      nodeEnv: process.env.NODE_ENV,
     })
 
     const { username } = req.query
-    console.log("Request details:", {
-      username,
-      method: req.method,
-      query: req.query,
-      headers: Object.keys(req.headers),
-    })
+    console.log("Request details:", { username, method: req.method })
 
     if (req.method !== "GET") {
       return res.status(405).json({ error: "Method not allowed" })
@@ -43,29 +41,12 @@ export default async function handler(req, res) {
 
     console.log("Looking for page:", cleanUsername)
 
-    // Try to connect to Redis
-    let redis
-    try {
-      const { Redis } = await import("@upstash/redis")
-      redis = Redis.fromEnv()
-      console.log("Redis client created successfully")
-    } catch (redisError) {
-      console.error("Redis connection error:", redisError)
-      return res.status(500).send(getErrorPage(`Redis connection failed: ${redisError.message}`))
-    }
-
     // Get the HTML content from Redis
     const key = `page:${cleanUsername}`
     console.log("Looking for Redis key:", key)
 
-    let htmlContent
-    try {
-      htmlContent = await redis.get(key)
-      console.log("Redis query result:", htmlContent ? "Found content" : "No content found")
-    } catch (redisError) {
-      console.error("Redis get error:", redisError)
-      return res.status(500).send(getErrorPage(`Redis query failed: ${redisError.message}`))
-    }
+    const htmlContent = await redis.get(key)
+    console.log("Redis query result:", htmlContent ? "Found content" : "No content found")
 
     if (!htmlContent) {
       console.log("Page not found for:", cleanUsername)
@@ -79,7 +60,7 @@ export default async function handler(req, res) {
     res.setHeader("Cache-Control", "public, max-age=300")
     return res.status(200).send(htmlContent)
   } catch (error) {
-    console.error("Unexpected error in serve function:", error)
+    console.error("Error in serve function:", error)
     return res.status(500).send(getErrorPage(`Server error: ${error.message}`))
   }
 }
