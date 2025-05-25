@@ -77,7 +77,7 @@
             border: 1px solid #333333;
             border-radius: 8px;
             margin-bottom: 0.5rem;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.3s ease;
             user-select: none;
         }
@@ -86,6 +86,15 @@
             border-color: #ffffff;
             background: rgba(255,255,255,0.08);
             transform: translateX(5px);
+        }
+
+        .block-item:active {
+            cursor: grabbing;
+        }
+
+        .block-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
         }
 
         .block-item.locked {
@@ -142,6 +151,12 @@
         .page-info input:focus {
             outline: none;
             border-color: #ffffff;
+        }
+
+        .page-info input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(255,255,255,0.02);
         }
 
         .page-title {
@@ -252,9 +267,9 @@
         }
 
         .drop-zone.drag-over {
-            border-color: #ffffff;
-            background: rgba(255,255,255,0.05);
-            color: #ffffff;
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            color: #4ade80;
         }
 
         .content-block {
@@ -436,19 +451,19 @@
             
             <div class="block-category">
                 <h3>basic</h3>
-                <div class="block-item" data-type="link">
+                <div class="block-item" draggable="true" data-type="link">
                     <span class="block-icon">🔗</span>
                     <span class="block-name">link</span>
                 </div>
-                <div class="block-item" data-type="text">
+                <div class="block-item" draggable="true" data-type="text">
                     <span class="block-icon">📝</span>
                     <span class="block-name">text</span>
                 </div>
-                <div class="block-item" data-type="image">
+                <div class="block-item" draggable="true" data-type="image">
                     <span class="block-icon">🖼️</span>
                     <span class="block-name">image</span>
                 </div>
-                <div class="block-item" data-type="divider">
+                <div class="block-item" draggable="true" data-type="divider">
                     <span class="block-icon">➖</span>
                     <span class="block-name">divider</span>
                 </div>
@@ -456,7 +471,7 @@
 
             <div class="block-category">
                 <h3>media</h3>
-                <div class="block-item" data-type="audio">
+                <div class="block-item" draggable="true" data-type="audio">
                     <span class="block-icon">🎵</span>
                     <span class="block-name">audio</span>
                 </div>
@@ -503,7 +518,7 @@
             <div class="editor-header">
                 <div class="page-info">
                     <input type="text" class="page-title" placeholder="page title" id="pageTitle" value="">
-                    <input type="text" class="page-username" placeholder="username" id="pageUsername" value="">
+                    <input type="text" class="page-username" placeholder="username" id="pageUsername" value="" disabled>
                     <input type="text" class="page-bio" placeholder="your bio..." id="pageBio" value="">
                 </div>
                 <div class="editor-actions">
@@ -517,7 +532,7 @@
                     <div class="phone-preview">
                         <div class="preview-content" id="previewContent">
                             <div class="drop-zone" id="dropZone">
-                                click blocks or drag them here to start building
+                                drag blocks here to start building
                             </div>
                         </div>
                     </div>
@@ -540,9 +555,8 @@
         let blocks = [];
         let currentUser = null;
 
-        // Get current user from cookies or localStorage
+        // Get current user from cookies
         function getCurrentUser() {
-            // Try to get from cookie first
             const userCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('user='));
             if (userCookie) {
                 try {
@@ -550,19 +564,14 @@
                     return userData;
                 } catch (e) {
                     console.error('Error parsing user cookie:', e);
+                    // Redirect to login if cookie is invalid
+                    window.location.href = '/login';
+                    return null;
                 }
             }
             
-            // Try localStorage as fallback
-            const userStorage = localStorage.getItem('currentUser');
-            if (userStorage) {
-                try {
-                    return JSON.parse(userStorage);
-                } catch (e) {
-                    console.error('Error parsing user storage:', e);
-                }
-            }
-            
+            // No user cookie found, redirect to login
+            window.location.href = '/login';
             return null;
         }
 
@@ -586,21 +595,31 @@
 
         // Auto-save on changes
         function setupAutoSave() {
-            const inputs = ['pageTitle', 'pageUsername', 'pageBio'];
+            const inputs = ['pageTitle', 'pageBio']; // Removed pageUsername since it's disabled
             inputs.forEach(id => {
                 const element = document.getElementById(id);
                 element.addEventListener('input', savePreviewData);
             });
         }
 
-        // Initialize blocks functionality
-        function initializeBlocks() {
+        // Initialize drag and drop functionality
+        function initializeDragAndDrop() {
             const blockItems = document.querySelectorAll('.block-item:not(.locked)');
             const dropZone = document.getElementById('dropZone');
             const previewContent = document.getElementById('previewContent');
 
-            // Click to add blocks
+            // Make blocks draggable
             blockItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', item.dataset.type);
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', (e) => {
+                    item.classList.remove('dragging');
+                });
+
+                // Also allow click to add (as backup)
                 item.addEventListener('click', () => {
                     const blockType = item.dataset.type;
                     createBlock(blockType);
@@ -614,10 +633,26 @@
                 });
             });
 
-            // Drop zone functionality
-            dropZone.addEventListener('click', () => {
-                // Show a simple message
-                alert('Click on a block from the sidebar to add it here!');
+            // Drop zone events
+            previewContent.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            previewContent.addEventListener('dragleave', (e) => {
+                if (!previewContent.contains(e.relatedTarget)) {
+                    dropZone.classList.remove('drag-over');
+                }
+            });
+
+            previewContent.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                
+                const blockType = e.dataTransfer.getData('text/plain');
+                if (blockType) {
+                    createBlock(blockType);
+                }
             });
         }
 
@@ -627,7 +662,7 @@
             notice.className = 'upgrade-notice';
             notice.innerHTML = `
                 <p>This feature requires a pro plan.</p>
-                <a href="plans.html">upgrade now →</a>
+                <a href="/plans">upgrade now →</a>
             `;
             
             if (!document.querySelector('.upgrade-notice')) {
@@ -981,7 +1016,7 @@
             document.getElementById('previewBtn').addEventListener('click', () => {
                 savePreviewData();
                 setTimeout(() => {
-                    window.open('preview.html', '_blank');
+                    window.open('/preview', '_blank');
                 }, 100);
             });
 
@@ -989,8 +1024,8 @@
                 const pageData = getCurrentPageData();
                 
                 if (!pageData.username.trim()) {
-                    alert('Please enter a username before publishing');
-                    document.getElementById('pageUsername').focus();
+                    alert('Username not found. Please log in again.');
+                    window.location.href = '/login';
                     return;
                 }
 
@@ -1024,6 +1059,8 @@
                     btn.style.background = '#ef4444';
                     btn.style.borderColor = '#ef4444';
                     
+                    alert(`Publish failed: ${error.message}`);
+                    
                     setTimeout(() => {
                         btn.textContent = originalText;
                         btn.style.background = '';
@@ -1048,8 +1085,10 @@
                 }
             };
             
+            console.log('Publishing data:', publishData);
+            
             try {
-                const response = await fetch('https://www.bricked.lol/api/publish', {
+                const response = await fetch('/api/publish', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1057,9 +1096,17 @@
                     body: JSON.stringify(publishData)
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Publish failed');
+                    let errorMessage = 'Publish failed';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
                 
                 const result = await response.json();
@@ -1186,7 +1233,7 @@
                 }).join('')}
             </div>
         ` : ''}
-        <div class="footer"><a href="https://www.bricked.lol">create your own with bricked.lol</a></div>
+        <div class="footer"><a href="/">create your own with bricked.lol</a></div>
     </div>
 </body>
 </html>`;
@@ -1196,15 +1243,18 @@
         function initialize() {
             // Get current user and populate fields
             currentUser = getCurrentUser();
-            if (currentUser) {
-                document.getElementById('pageTitle').value = currentUser.displayName || currentUser.username || '';
-                document.getElementById('pageUsername').value = currentUser.username || '';
-                document.getElementById('pageBio').value = '';
+            if (!currentUser) {
+                return; // Will redirect to login
             }
+
+            // Populate user fields
+            document.getElementById('pageTitle').value = currentUser.displayName || currentUser.username || '';
+            document.getElementById('pageUsername').value = currentUser.username || '';
+            document.getElementById('pageBio').value = '';
 
             // Setup all functionality
             setupAutoSave();
-            initializeBlocks();
+            initializeDragAndDrop();
             setupHeaderButtons();
             
             // Load existing data if any
@@ -1213,8 +1263,8 @@
                 try {
                     const data = JSON.parse(savedData);
                     document.getElementById('pageTitle').value = data.title || '';
-                    document.getElementById('pageUsername').value = data.username || '';
                     document.getElementById('pageBio').value = data.bio || '';
+                    // Don't load username from saved data, use current user
                 } catch (e) {
                     console.error('Error loading saved data:', e);
                 }
