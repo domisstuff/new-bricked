@@ -3,7 +3,7 @@
     "api/publish.js": {
       "maxDuration": 10
     },
-    "api/[username].js": {
+    "api/page/[username].js": {
       "maxDuration": 5
     }
   },
@@ -14,7 +14,7 @@
     },
     {
       "source": "/:username",
-      "destination": "/api/:username"
+      "destination": "/api/page/:username"
     }
   ]
 }
