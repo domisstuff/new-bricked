@@ -1136,61 +1136,85 @@
             });
         }
 
-        async function publishPage(data) {
-            const { username } = data;
-            
-            // Generate the complete HTML file content
-            const indexHTML = generatePublishedPageHTML(data);
-            
-            // Prepare data for API
-            const publishData = {
-                username: username,
-                files: {
-                    'index.html': indexHTML
-                }
-            };
-            
-            console.log('Publishing data:', publishData);
-            
-            try {
-                const response = await fetch('/api/publish', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(publishData)
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    let errorMessage = 'Publish failed';
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorMessage;
-                    } catch (e) {
-                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                    }
-                    throw new Error(errorMessage);
-                }
-                
-                const result = await response.json();
-                console.log('Publish success:', result);
-                
-                // Also save locally for backup
-                localStorage.setItem(`published_${username}`, JSON.stringify({
-                    ...data,
-                    publishedAt: new Date().toISOString(),
-                    isPublished: true
-                }));
-                
-                return result;
-                
-            } catch (error) {
-                console.error('Publish error:', error);
-                throw error;
-            }
+async function publishPage(data) {
+    const { username } = data;
+    
+    // Generate the complete HTML file content
+    const indexHTML = generatePublishedPageHTML(data);
+    
+    // Prepare data for API
+    const publishData = {
+        username: username,
+        files: {
+            'index.html': indexHTML
         }
+    };
+    
+    console.log('Publishing data:', publishData);
+    console.log('Username:', username);
+    console.log('HTML length:', indexHTML.length);
+    
+    try {
+        const response = await fetch('/api/publish', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(publishData)
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // Try to get response text regardless of status
+        let responseText;
+        try {
+            responseText = await response.text();
+            console.log('Response text:', responseText);
+        } catch (e) {
+            console.log('Could not read response text:', e);
+        }
+        
+        if (!response.ok) {
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            
+            if (responseText) {
+                try {
+                    const errorData = JSON.parse(responseText);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch (e) {
+                    // If not JSON, use the raw text
+                    errorMessage = responseText || errorMessage;
+                }
+            }
+            
+            throw new Error(errorMessage);
+        }
+        
+        // Try to parse successful response
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            result = { success: true, message: 'Published successfully' };
+        }
+        
+        console.log('Publish success:', result);
+        
+        // Also save locally for backup
+        localStorage.setItem(`published_${username}`, JSON.stringify({
+            ...data,
+            publishedAt: new Date().toISOString(),
+            isPublished: true
+        }));
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Publish error:', error);
+        throw error;
+    }
+}
 
         function generatePublishedPageHTML(data) {
             const { title, username, bio, avatar, blocks } = data;
