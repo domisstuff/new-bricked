@@ -317,9 +317,9 @@
     <div class="background-grid"></div>
     
     <nav class="nav">
-        <a href="index.html">home</a>
-        <a href="login.html">login</a>
-        <a href="signup.html">sign up</a>
+        <a href="index">home</a>
+        <a href="login">login</a>
+        <a href="signup">sign up</a>
     </nav>
 
     <div class="container">
@@ -461,14 +461,14 @@
 
         function selectPlan(planType) {
             if (planType === 'free') {
-                window.location.href = 'signup.html';
+                window.location.href = 'signup';
             } else if (planType === 'enterprise') {
                 window.location.href = 'mailto:sales@bricked.lol?subject=Enterprise Plan Inquiry';
             } else {
                 // Redirect to payment page (would integrate with Stripe)
                 alert(`Redirecting to payment for ${planType} plan...`);
                 // In a real app, this would redirect to a payment processor
-                window.location.href = 'signup.html';
+                window.location.href = 'signup';
             }
         }
 
