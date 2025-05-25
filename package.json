@@ -2,17 +2,14 @@
   "name": "bricked-lol-biolink",
   "version": "1.0.0",
   "description": "Biolink website builder",
-  "main": "index.js",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "echo 'Static site'"
+    "build": "echo 'Static site - no build needed'"
   },
   "dependencies": {
     "@upstash/redis": "^1.28.4"
   },
   "engines": {
-    "node": ">=18"
+    "node": "18.x"
   },
   "keywords": ["biolink", "website", "builder"],
   "author": "Your Name",
