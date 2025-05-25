@@ -1,17 +1,33 @@
-import { Redis } from "@upstash/redis"
-
-const redis = Redis.fromEnv()
-
 export default async function handler(req, res) {
-  const { username } = req.query
+  // Add CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
 
-  console.log("Serve API called with:", { username, method: req.method, query: req.query })
-
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" })
+  if (req.method === "OPTIONS") {
+    return res.status(200).end()
   }
 
   try {
+    console.log("Serve function called")
+    console.log("Environment variables check:", {
+      hasKvUrl: !!process.env.KV_REST_API_URL,
+      hasKvToken: !!process.env.KV_REST_API_TOKEN,
+      nodeEnv: process.env.NODE_ENV,
+    })
+
+    const { username } = req.query
+    console.log("Request details:", {
+      username,
+      method: req.method,
+      query: req.query,
+      headers: Object.keys(req.headers),
+    })
+
+    if (req.method !== "GET") {
+      return res.status(405).json({ error: "Method not allowed" })
+    }
+
     if (!username) {
       console.log("No username provided")
       return res.status(400).send(get404Page("No username provided"))
@@ -27,11 +43,29 @@ export default async function handler(req, res) {
 
     console.log("Looking for page:", cleanUsername)
 
+    // Try to connect to Redis
+    let redis
+    try {
+      const { Redis } = await import("@upstash/redis")
+      redis = Redis.fromEnv()
+      console.log("Redis client created successfully")
+    } catch (redisError) {
+      console.error("Redis connection error:", redisError)
+      return res.status(500).send(getErrorPage(`Redis connection failed: ${redisError.message}`))
+    }
+
     // Get the HTML content from Redis
     const key = `page:${cleanUsername}`
-    console.log("Redis key:", key)
+    console.log("Looking for Redis key:", key)
 
-    const htmlContent = await redis.get(key)
+    let htmlContent
+    try {
+      htmlContent = await redis.get(key)
+      console.log("Redis query result:", htmlContent ? "Found content" : "No content found")
+    } catch (redisError) {
+      console.error("Redis get error:", redisError)
+      return res.status(500).send(getErrorPage(`Redis query failed: ${redisError.message}`))
+    }
 
     if (!htmlContent) {
       console.log("Page not found for:", cleanUsername)
@@ -45,8 +79,8 @@ export default async function handler(req, res) {
     res.setHeader("Cache-Control", "public, max-age=300")
     return res.status(200).send(htmlContent)
   } catch (error) {
-    console.error("Error serving page:", error)
-    return res.status(500).send(getErrorPage(error.message))
+    console.error("Unexpected error in serve function:", error)
+    return res.status(500).send(getErrorPage(`Server error: ${error.message}`))
   }
 }
 
@@ -102,13 +136,17 @@ function getErrorPage(errorMessage) {
       display: flex; align-items: center; justify-content: center; padding: 2rem;
     }
     .container {
-      text-align: center; max-width: 400px;
+      text-align: center; max-width: 500px;
       background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);
       border: 1px solid #222222; border-radius: 20px; padding: 3rem 2rem;
     }
     h1 { font-size: 2rem; margin-bottom: 1rem; color: #ef4444; }
     p { color: #888888; margin-bottom: 2rem; line-height: 1.6; }
-    .error { color: #666; font-size: 0.8rem; margin-bottom: 2rem; }
+    .error { 
+      color: #666; font-size: 0.8rem; margin-bottom: 2rem; 
+      background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;
+      text-align: left; font-family: monospace; word-break: break-word;
+    }
     a { color: #ffffff; text-decoration: none; padding: 0.75rem 1.5rem;
         background: rgba(255,255,255,0.1); border: 1px solid #333333;
         border-radius: 8px; transition: all 0.3s ease; display: inline-block; }
@@ -119,7 +157,7 @@ function getErrorPage(errorMessage) {
   <div class="container">
     <h1>Server Error</h1>
     <p>Something went wrong while loading this page.</p>
-    <div class="error">Error: ${errorMessage}</div>
+    <div class="error">${errorMessage}</div>
     <a href="/">← Back to Home</a>
   </div>
 </body>
