@@ -1,7 +1,3 @@
-import { Redis } from "@upstash/redis"
-
-const redis = Redis.fromEnv()
-
 export default async function handler(req, res) {
   // Add CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -14,10 +10,20 @@ export default async function handler(req, res) {
 
   try {
     console.log("Serve function called")
+
+    // Check environment variables
+    const kvUrl = process.env.KV_REST_API_URL
+    const kvToken = process.env.KV_REST_API_TOKEN
+
     console.log("Environment variables check:", {
-      hasKvUrl: !!process.env.KV_REST_API_URL,
-      hasKvToken: !!process.env.KV_REST_API_TOKEN,
+      hasKvUrl: !!kvUrl,
+      hasKvToken: !!kvToken,
+      kvUrl: kvUrl ? kvUrl.substring(0, 30) + "..." : "missing",
     })
+
+    if (!kvUrl || !kvToken) {
+      return res.status(500).send(getErrorPage("Redis environment variables not configured"))
+    }
 
     const { username } = req.query
     console.log("Request details:", { username, method: req.method })
@@ -41,24 +47,44 @@ export default async function handler(req, res) {
 
     console.log("Looking for page:", cleanUsername)
 
-    // Get the HTML content from Redis
+    // Use REST API to get data from Redis
     const key = `page:${cleanUsername}`
     console.log("Looking for Redis key:", key)
 
-    const htmlContent = await redis.get(key)
-    console.log("Redis query result:", htmlContent ? "Found content" : "No content found")
+    try {
+      const response = await fetch(`${kvUrl}/get/${encodeURIComponent(key)}`, {
+        headers: {
+          Authorization: `Bearer ${kvToken}`,
+          "Content-Type": "application/json",
+        },
+      })
 
-    if (!htmlContent) {
-      console.log("Page not found for:", cleanUsername)
-      return res.status(404).send(get404Page(cleanUsername))
+      console.log("Redis API response status:", response.status)
+
+      if (!response.ok) {
+        throw new Error(`Redis API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log("Redis API response:", data)
+
+      const htmlContent = data.result
+
+      if (!htmlContent) {
+        console.log("Page not found for:", cleanUsername)
+        return res.status(404).send(get404Page(cleanUsername))
+      }
+
+      console.log("Found page, serving HTML (length:", htmlContent.length, ")")
+
+      // Set content type to HTML and return the stored content
+      res.setHeader("Content-Type", "text/html; charset=utf-8")
+      res.setHeader("Cache-Control", "public, max-age=300")
+      return res.status(200).send(htmlContent)
+    } catch (redisError) {
+      console.error("Redis API error:", redisError)
+      return res.status(500).send(getErrorPage(`Redis API failed: ${redisError.message}`))
     }
-
-    console.log("Found page, serving HTML (length:", htmlContent.length, ")")
-
-    // Set content type to HTML and return the stored content
-    res.setHeader("Content-Type", "text/html; charset=utf-8")
-    res.setHeader("Cache-Control", "public, max-age=300")
-    return res.status(200).send(htmlContent)
   } catch (error) {
     console.error("Error in serve function:", error)
     return res.status(500).send(getErrorPage(`Server error: ${error.message}`))
