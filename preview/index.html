@@ -3,67 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preview</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title id="pageTitle">preview - bricked.lol</title>
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        #preview-container {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .preview-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #222222;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .preview-title {
+            color: #888888;
+            font-size: 0.9rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.05);
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background: #ffffff;
+            color: #0a0a0a;
+            border-color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #f0f0f0;
+            color: #0a0a0a;
+        }
+
+        .preview-container {
+            max-width: 400px;
+            margin: 80px auto 0;
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid #222222;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            min-height: 600px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .profile-username {
+            color: #888888;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .profile-bio {
+            color: #cccccc;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .content-blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .content-block {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .link-block {
+            display: block;
+            text-decoration: none;
+            color: #ffffff;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-block:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .link-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .link-block:hover::before {
+            left: 100%;
+        }
+
+        .text-block {
+            color: #cccccc;
+            line-height: 1.6;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .image-block {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .image-block img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .audio-block {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .audio-block audio {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .divider-block {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            margin: 1rem 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666666;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #888888;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stagger animation delays */
+        .content-block:nth-child(1) { animation-delay: 0.1s; }
+        .content-block:nth-child(2) { animation-delay: 0.2s; }
+        .content-block:nth-child(3) { animation-delay: 0.3s; }
+        .content-block:nth-child(4) { animation-delay: 0.4s; }
+        .content-block:nth-child(5) { animation-delay: 0.5s; }
+        .content-block:nth-child(6) { animation-delay: 0.6s; }
+        .content-block:nth-child(7) { animation-delay: 0.7s; }
+        .content-block:nth-child(8) { animation-delay: 0.8s; }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                margin: 80px 1rem 0;
+                padding: 2rem 1.5rem;
+            }
+            
+            .preview-header {
+                padding: 1rem;
+            }
+            
+            .preview-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Preview</h1>
+    <div class="background-grid"></div>
 
-    <div id="preview-container">
-        <h2>Title: <span id="preview-title"></span></h2>
-        <p><strong>Author:</strong> <span id="preview-author"></span></p>
-        <p><strong>Date:</strong> <span id="preview-date"></span></p>
-        <hr>
-        <div id="preview-content"></div>
+    <div class="preview-header">
+        <div class="preview-title">preview mode</div>
+        <div class="preview-actions">
+            <a href="editor.html" class="btn">← back to editor</a>
+            <button class="btn btn-primary" id="publishFromPreview">publish page</button>
+        </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+        <div class="empty-state">
+            <h3>loading preview...</h3>
+            <p>getting your page ready</p>
+        </div>
     </div>
 
     <script>
-        async function loadPreviewData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
+        let pageData = null;
 
-            if (!id) {
-                document.getElementById('preview-container').innerHTML = '<p>No ID provided.</p>';
+        // Load preview data from localStorage (set by editor)
+        function loadPreviewData() {
+            const savedData = localStorage.getItem('previewData');
+            if (savedData) {
+                pageData = JSON.parse(savedData);
+                renderPreview(pageData);
+            } else {
+                // If no preview data, try to load from URL params or show empty state
+                showEmptyState();
+            }
+        }
+
+        function showEmptyState() {
+            document.getElementById('previewContainer').innerHTML = `
+                <div class="empty-state">
+                    <h3>no preview data</h3>
+                    <p>go back to the editor to create your page</p>
+                    <a href="editor.html" class="btn" style="margin-top: 1rem;">open editor</a>
+                </div>
+            `;
+        }
+
+        function renderPreview(data) {
+            const { title, username, bio, avatar, blocks } = data;
+            
+            // Update page title
+            document.getElementById('pageTitle').textContent = `${title || username} - preview`;
+            
+            let previewHTML = `
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        ${avatar ? `<img src="${avatar}" alt="${username}">` : '👤'}
+                    </div>
+                    <h1 class="profile-name">${title || username}</h1>
+                    <div class="profile-username">@${username}</div>
+                    ${bio ? `<p class="profile-bio">${bio}</p>` : ''}
+                </div>
+            `;
+
+            if (blocks && blocks.length > 0) {
+                previewHTML += '<div class="content-blocks">';
+                
+                blocks.forEach(block => {
+                    previewHTML += renderBlock(block);
+                });
+                
+                previewHTML += '</div>';
+            } else {
+                previewHTML += `
+                    <div class="empty-state">
+                        <h3>no content yet</h3>
+                        <p>add some blocks in the editor to see them here</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('previewContainer').innerHTML = previewHTML;
+        }
+
+        function renderBlock(block) {
+            switch (block.type) {
+                case 'link':
+                    return `
+                        <div class="content-block">
+                            <a href="${block.url || '#'}" class="link-block" target="_blank" rel="noopener noreferrer">
+                                ${block.title || 'Untitled Link'}
+                            </a>
+                        </div>
+                    `;
+                
+                case 'text':
+                    return `
+                        <div class="content-block">
+                            <div class="text-block" style="text-align: ${block.align || 'left'}">
+                                ${block.content || 'Sample text'}
+                            </div>
+                        </div>
+                    `;
+                
+                case 'image':
+                    if (!block.src || block.src.includes('placeholder')) return '';
+                    return `
+                        <div class="content-block">
+                            <div class="image-block">
+                                <img src="${block.src}" alt="${block.alt || 'Image'}" loading="lazy">
+                            </div>
+                        </div>
+                    `;
+                
+                case 'audio':
+                    if (!block.src) return '';
+                    return `
+                        <div class="content-block">
+                            <div class="audio-block">
+                                <p>🎵 ${block.title || 'Audio Track'}</p>
+                                <audio controls>
+                                    <source src="${block.src}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        </div>
+                    `;
+                
+                case 'divider':
+                    return `
+                        <div class="content-block">
+                            <div class="divider-block"></div>
+                        </div>
+                    `;
+                
+                default:
+                    return '';
+            }
+        }
+
+        // Publish functionality
+        document.getElementById('publishFromPreview').addEventListener('click', async () => {
+            if (!pageData) {
+                alert('No page data to publish');
                 return;
             }
 
+            const btn = document.getElementById('publishFromPreview');
+            const originalText = btn.textContent;
+            btn.textContent = 'publishing...';
+            btn.disabled = true;
+
             try {
-                const response = await fetch(`/api/blog/${id}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                document.getElementById('preview-title').textContent = data.title;
-                document.getElementById('preview-author').textContent = data.author;
-                document.getElementById('preview-date').textContent = new Date(data.date).toLocaleDateString();
-                document.getElementById('preview-content').textContent = data.content;
-
+                await publishPage(pageData);
+                btn.textContent = 'published! ✓';
+                btn.style.background = '#4ade80';
+                btn.style.borderColor = '#4ade80';
+                
+                // Show success message
+                setTimeout(() => {
+                    const publishedUrl = `${window.location.origin}/${pageData.username}`;
+                    if (confirm(`Page published successfully!\n\nYour page is now live at:\n${publishedUrl}\n\nWould you like to visit it?`)) {
+                        window.open(publishedUrl, '_blank');
+                    }
+                }, 500);
+                
             } catch (error) {
-                console.error("Could not fetch blog post:", error);
-                document.getElementById('preview-container').innerHTML = `<p>Error loading preview: ${error}</p>`;
+                console.error('Publish error:', error);
+                btn.textContent = 'publish failed';
+                btn.style.background = '#ef4444';
+                btn.style.borderColor = '#ef4444';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.disabled = false;
+                }, 2000);
             }
-        }
-                // You could send this to your analytics service
-            });
         });
-    }
 
-    // Initialize preview
-    document.addEventListener('DOMContentLoaded', () => {
-        loadPreviewData();
-    });
-</script>
+        async function publishPage(data) {
+            // Save to localStorage as published page
+            localStorage.setItem(`published_${data.username}`, JSON.stringify({
+                ...data,
+                publishedAt: new Date().toISOString(),
+                isPublished: true
+            }));
+
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            return true;
+        }
+
+        // Initialize preview
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPreviewData();
+        });
+    </script>
 </body>
 </html>
