@@ -557,23 +557,63 @@
 
         // Get current user from cookies
         function getCurrentUser() {
-            const userCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('user='));
-            if (userCookie) {
-                try {
-                    const userData = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
-                    return userData;
-                } catch (e) {
-                    console.error('Error parsing user cookie:', e);
-                    // Redirect to login if cookie is invalid
-                    window.location.href = '/login';
-                    return null;
-                }
-            }
+    console.log('All cookies:', document.cookie);
+    
+    // Try to get from cookie first
+    const cookies = document.cookie.split(';');
+    console.log('Cookie array:', cookies);
+    
+    const userCookie = cookies.find(cookie => cookie.trim().startsWith('user='));
+    console.log('Found user cookie:', userCookie);
+    
+    if (userCookie) {
+        try {
+            const cookieValue = userCookie.split('=')[1];
+            console.log('Cookie value before decode:', cookieValue);
             
-            // No user cookie found, redirect to login
-            window.location.href = '/login';
-            return null;
+            const decodedValue = decodeURIComponent(cookieValue);
+            console.log('Decoded cookie value:', decodedValue);
+            
+            const userData = JSON.parse(decodedValue);
+            console.log('Parsed user data:', userData);
+            return userData;
+        } catch (e) {
+            console.error('Error parsing user cookie:', e);
+            console.log('Raw cookie value:', userCookie);
         }
+    }
+    
+    // Try different cookie names that might be used
+    const altCookieNames = ['currentUser', 'authUser', 'loggedInUser'];
+    for (const cookieName of altCookieNames) {
+        const altCookie = cookies.find(cookie => cookie.trim().startsWith(`${cookieName}=`));
+        if (altCookie) {
+            try {
+                const cookieValue = altCookie.split('=')[1];
+                const userData = JSON.parse(decodeURIComponent(cookieValue));
+                console.log(`Found user data in ${cookieName}:`, userData);
+                return userData;
+            } catch (e) {
+                console.error(`Error parsing ${cookieName} cookie:`, e);
+            }
+        }
+    }
+    
+    // Try localStorage as fallback
+    const userStorage = localStorage.getItem('currentUser');
+    if (userStorage) {
+        try {
+            const userData = JSON.parse(userStorage);
+            console.log('Found user data in localStorage:', userData);
+            return userData;
+        } catch (e) {
+            console.error('Error parsing user storage:', e);
+        }
+    }
+    
+    console.log('No user data found anywhere');
+    return null;
+}
 
         // Get current page data
         function getCurrentPageData() {
@@ -1241,38 +1281,48 @@
 
         // Initialize everything
         function initialize() {
-            // Get current user and populate fields
-            currentUser = getCurrentUser();
-            if (!currentUser) {
-                return; // Will redirect to login
-            }
+    console.log('Initializing editor...');
+    
+    // Get current user and populate fields
+    currentUser = getCurrentUser();
+    
+    if (!currentUser) {
+        console.log('No current user found, will redirect to login in 3 seconds...');
+        alert('No user session found. You will be redirected to login.');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 3000);
+        return;
+    }
 
-            // Populate user fields
-            document.getElementById('pageTitle').value = currentUser.displayName || currentUser.username || '';
-            document.getElementById('pageUsername').value = currentUser.username || '';
-            document.getElementById('pageBio').value = '';
+    console.log('Current user found:', currentUser);
 
-            // Setup all functionality
-            setupAutoSave();
-            initializeDragAndDrop();
-            setupHeaderButtons();
-            
-            // Load existing data if any
-            const savedData = localStorage.getItem('previewData');
-            if (savedData) {
-                try {
-                    const data = JSON.parse(savedData);
-                    document.getElementById('pageTitle').value = data.title || '';
-                    document.getElementById('pageBio').value = data.bio || '';
-                    // Don't load username from saved data, use current user
-                } catch (e) {
-                    console.error('Error loading saved data:', e);
-                }
-            }
+    // Populate user fields
+    document.getElementById('pageTitle').value = currentUser.displayName || currentUser.username || currentUser.name || '';
+    document.getElementById('pageUsername').value = currentUser.username || currentUser.uid || '';
+    document.getElementById('pageBio').value = '';
 
-            // Save initial data
-            savePreviewData();
+    // Setup all functionality
+    setupAutoSave();
+    initializeDragAndDrop();
+    setupHeaderButtons();
+    
+    // Load existing data if any
+    const savedData = localStorage.getItem('previewData');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            document.getElementById('pageTitle').value = data.title || '';
+            document.getElementById('pageBio').value = data.bio || '';
+            // Don't load username from saved data, use current user
+        } catch (e) {
+            console.error('Error loading saved data:', e);
         }
+    }
+
+    // Save initial data
+    savePreviewData();
+}
 
         // Start everything when page loads
         document.addEventListener('DOMContentLoaded', initialize);
