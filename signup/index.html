@@ -250,7 +250,7 @@
 <body>
     <div class="background-grid"></div>
     
-    <a href="index.html" class="back-btn">← back</a>
+    <a href="" class="back-btn">← back</a>
 
     <div class="signup-container">
         <h1 class="logo">bricked.lol</h1>
@@ -292,7 +292,7 @@
         </button>
 
         <div class="login-link">
-            already have an account? <a href="login.html">sign in</a>
+            already have an account? <a href="login">sign in</a>
         </div>
     </div>
 
@@ -364,7 +364,7 @@
                 document.cookie = `user=${user.uid}; path=/; max-age=86400`;
                 
                 // Redirect to editor
-                window.location.href = 'editor.html';
+                window.location.href = 'editor';
             } catch (error) {
                 showError(error.message);
                 signupBtn.disabled = false;
@@ -388,7 +388,7 @@
                 }, { merge: true });
 
                 document.cookie = `user=${user.uid}; path=/; max-age=86400`;
-                window.location.href = 'editor.html';
+                window.location.href = 'editor';
             } catch (error) {
                 showError(error.message);
             }
@@ -409,7 +409,7 @@
                 }, { merge: true });
 
                 document.cookie = `user=${user.uid}; path=/; max-age=86400`;
-                window.location.href = 'editor.html';
+                window.location.href = 'editor';
             } catch (error) {
                 showError(error.message);
             }
