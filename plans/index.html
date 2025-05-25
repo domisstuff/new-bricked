@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>plans - bricked.lol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #888888;
+            margin-bottom: 2rem;
+        }
+
+        .nav {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .nav a {
+            color: #888888;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav a:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .plan-card {
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid #222222;
+            border-radius: 16px;
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .plan-card:hover {
+            border-color: #444444;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .plan-card.featured {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .plan-card.featured::before {
+            content: 'most popular';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            color: #0a0a0a;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .plan-price .currency {
+            font-size: 1.5rem;
+            color: #888888;
+        }
+
+        .plan-period {
+            color: #888888;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.5rem 0;
+            color: #cccccc;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .plan-features li::before {
+            content: '✓';
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .plan-features li.unavailable {
+            color: #666666;
+        }
+
+        .plan-features li.unavailable::before {
+            content: '✗';
+            color: #666666;
+        }
+
+        .plan-btn {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plan-btn:hover {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-2px);
+        }
+
+        .plan-btn.featured {
+            background: #ffffff;
+            color: #0a0a0a;
+            border-color: #ffffff;
+        }
+
+        .plan-btn.featured:hover {
+            background: #f0f0f0;
+        }
+
+        .faq-section {
+            margin-top: 4rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .faq-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #ffffff;
+        }
+
+        .faq-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #222222;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            color: #888888;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(180deg);
+        }
+
+        .faq-question::after {
+            content: '↓';
+            transition: transform 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .nav {
+                position: static;
+                justify-content: center;
+                margin-bottom: 2rem;
+            }
+            
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .plan-card {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    
+    <nav class="nav">
+        <a href="index.html">home</a>
+        <a href="login.html">login</a>
+        <a href="signup.html">sign up</a>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">bricked.lol</h1>
+            <p class="tagline">choose your plan</p>
+        </div>
+
+        <div class="plans-grid">
+            <div class="plan-card">
+                <h3 class="plan-name">free</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>0
+                </div>
+                <p class="plan-period">forever</p>
+                
+                <ul class="plan-features">
+                    <li>1 biolink page</li>
+                    <li>basic blocks (link, text, image)</li>
+                    <li>bricked.lol subdomain</li>
+                    <li>basic analytics</li>
+                    <li class="unavailable">custom domain</li>
+                    <li class="unavailable">advanced blocks</li>
+                    <li class="unavailable">custom css</li>
+                    <li class="unavailable">priority support</li>
+                </ul>
+                
+                <button class="plan-btn" onclick="selectPlan('free')">get started</button>
+            </div>
+
+            <div class="plan-card featured">
+                <h3 class="plan-name">pro</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>5
+                </div>
+                <p class="plan-period">per month</p>
+                
+                <ul class="plan-features">
+                    <li>unlimited biolink pages</li>
+                    <li>all blocks (video, audio, embed, etc.)</li>
+                    <li>custom domain</li>
+                    <li>advanced analytics</li>
+                    <li>custom css</li>
+                    <li>remove branding</li>
+                    <li>priority support</li>
+                    <li>team collaboration</li>
+                </ul>
+                
+                <button class="plan-btn featured" onclick="selectPlan('pro')">upgrade to pro</button>
+            </div>
+
+            <div class="plan-card">
+                <h3 class="plan-name">enterprise</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>25
+                </div>
+                <p class="plan-period">per month</p>
+                
+                <ul class="plan-features">
+                    <li>everything in pro</li>
+                    <li>white-label solution</li>
+                    <li>api access</li>
+                    <li>advanced integrations</li>
+                    <li>dedicated support</li>
+                    <li>custom features</li>
+                    <li>sla guarantee</li>
+                    <li>onboarding assistance</li>
+                </ul>
+                
+                <button class="plan-btn" onclick="selectPlan('enterprise')">contact sales</button>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2 class="faq-title">frequently asked questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    can i change plans later?
+                </div>
+                <div class="faq-answer">
+                    yes! you can upgrade or downgrade your plan at any time. changes take effect immediately and billing is prorated.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    do you offer refunds?
+                </div>
+                <div class="faq-answer">
+                    we offer a 30-day money-back guarantee for all paid plans. no questions asked.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    what payment methods do you accept?
+                </div>
+                <div class="faq-answer">
+                    we accept all major credit cards, paypal, and crypto payments through stripe.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    is there a setup fee?
+                </div>
+                <div class="faq-answer">
+                    nope! there are no setup fees, hidden costs, or long-term contracts. just simple monthly pricing.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    can i use my own domain?
+                </div>
+                <div class="faq-answer">
+                    yes! pro and enterprise plans include custom domain support. we'll help you set it up.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+
+        function selectPlan(planType) {
+            if (planType === 'free') {
+                window.location.href = 'signup.html';
+            } else if (planType === 'enterprise') {
+                window.location.href = 'mailto:sales@bricked.lol?subject=Enterprise Plan Inquiry';
+            } else {
+                // Redirect to payment page (would integrate with Stripe)
+                alert(`Redirecting to payment for ${planType} plan...`);
+                // In a real app, this would redirect to a payment processor
+                window.location.href = 'signup.html';
+            }
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const planCards = document.querySelectorAll('.plan-card');
+            
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                        entry.target.classList.add('animate');
+                    }
+                });
+            }, observerOptions);
+            
+            planCards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
