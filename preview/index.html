@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        #preview-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Preview</h1>
+
+    <div id="preview-container">
+        <h2>Title: <span id="preview-title"></span></h2>
+        <p><strong>Author:</strong> <span id="preview-author"></span></p>
+        <p><strong>Date:</strong> <span id="preview-date"></span></p>
+        <hr>
+        <div id="preview-content"></div>
+    </div>
+
+    <script>
+        async function loadPreviewData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            if (!id) {
+                document.getElementById('preview-container').innerHTML = '<p>No ID provided.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/blog/${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                document.getElementById('preview-title').textContent = data.title;
+                document.getElementById('preview-author').textContent = data.author;
+                document.getElementById('preview-date').textContent = new Date(data.date).toLocaleDateString();
+                document.getElementById('preview-content').textContent = data.content;
+
+            } catch (error) {
+                console.error("Could not fetch blog post:", error);
+                document.getElementById('preview-container').innerHTML = `<p>Error loading preview: ${error}</p>`;
+            }
+        }
+                // You could send this to your analytics service
+            });
+        });
+    }
+
+    // Initialize preview
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPreviewData();
+    });
+</script>
+</body>
+</html>
