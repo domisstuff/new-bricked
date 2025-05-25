@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>editor - bricked.lol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .editor-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(255,255,255,0.02);
+            border-right: 1px solid #222222;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+        }
+
+        .block-category {
+            margin-bottom: 2rem;
+        }
+
+        .block-category h3 {
+            font-size: 1rem;
+            color: #888888;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .block-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333333;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .block-item:hover {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+
+        .block-item:active {
+            cursor: grabbing;
+        }
+
+        .block-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .block-item.locked::after {
+            content: '🔒';
+            margin-left: auto;
+        }
+
+        .block-icon {
+            font-size: 1.2rem;
+        }
+
+        .block-name {
+            font-size: 0.9rem;
+        }
+
+        .main-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid #222222;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-title {
+            flex: 1;
+        }
+
+        .page-title input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .page-title input:focus {
+            outline: none;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .btn-primary {
+            background: #ffffff;
+            color: #0a0a0a;
+            border-color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #f0f0f0;
+        }
+
+        .editor-workspace {
+            flex: 1;
+            display: flex;
+        }
+
+        .canvas-area {
+            flex: 1;
+            padding: 2rem;
+            background: #111111;
+            position: relative;
+        }
+
+        .phone-preview {
+            max-width: 375px;
+            margin: 0 auto;
+            background: #000000;
+            border-radius: 25px;
+            padding: 2rem 1.5rem;
+            min-height: 600px;
+            border: 2px solid #333333;
+            position: relative;
+        }
+
+        .phone-preview::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: #333333;
+            border-radius: 2px;
+        }
+
+        .preview-content {
+            min-height: 100%;
+            position: relative;
+        }
+
+        .drop-zone {
+            min-height: 200px;
+            border: 2px dashed #333333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666666;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #ffffff;
+            background: rgba(255,255,255,0.05);
+            color: #ffffff;
+        }
+
+        .content-block {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .content-block:hover {
+            border-color: #ffffff;
+        }
+
+        .block-controls {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            display: flex;
+            gap: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .content-block:hover .block-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .link-block {
+            display: block;
+            text-decoration: none;
+            color: #ffffff;
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .link-block:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .text-block {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+
+        .image-block img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .audio-block {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .properties-panel {
+            width: 280px;
+            background: rgba(255,255,255,0.02);
+            border-left: 1px solid #222222;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .properties-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #888888;
+            font-size: 0.9rem;
+        }
+
+        .property-group input,
+        .property-group textarea,
+        .property-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333333;
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .property-group input:focus,
+        .property-group textarea:focus,
+        .property-group select:focus {
+            outline: none;
+            border-color: #ffffff;
+        }
+
+        .upgrade-notice {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .upgrade-notice a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .properties-panel {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                flex-direction: column;
+            }
+            
+            .sidebar,
+            .properties-panel {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+            
+            .phone-preview {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="sidebar">
+            <h2>blocks</h2>
+            
+            <div class="block-category">
+                <h3>basic</h3>
+                <div class="block-item" draggable="true" data-type="link">
+                    <span class="block-icon">🔗</span>
+                    <span class="block-name">link</span>
+                </div>
+                <div class="block-item" draggable="true" data-type="text">
+                    <span class="block-icon">📝</span>
+                    <span class="block-name">text</span>
+                </div>
+                <div class="block-item" draggable="true" data-type="image">
+                    <span class="block-icon">🖼️</span>
+                    <span class="block-name">image</span>
+                </div>
+                <div class="block-item" draggable="true" data-type="divider">
+                    <span class="block-icon">➖</span>
+                    <span class="block-name">divider</span>
+                </div>
+            </div>
+
+            <div class="block-category">
+                <h3>media</h3>
+                <div class="block-item" draggable="true" data-type="audio">
+                    <span class="block-icon">🎵</span>
+                    <span class="block-name">audio</span>
+                </div>
+                <div class="block-item locked" data-type="video">
+                    <span class="block-icon">🎥</span>
+                    <span class="block-name">video</span>
+                </div>
+                <div class="block-item locked" data-type="embed">
+                    <span class="block-icon">📺</span>
+                    <span class="block-name">embed</span>
+                </div>
+            </div>
+
+            <div class="block-category">
+                <h3>social</h3>
+                <div class="block-item locked" data-type="social-links">
+                    <span class="block-icon">📱</span>
+                    <span class="block-name">social links</span>
+                </div>
+                <div class="block-item locked" data-type="contact">
+                    <span class="block-icon">📞</span>
+                    <span class="block-name">contact</span>
+                </div>
+            </div>
+
+            <div class="block-category">
+                <h3>advanced</h3>
+                <div class="block-item locked" data-type="calendar">
+                    <span class="block-icon">📅</span>
+                    <span class="block-name">calendar</span>
+                </div>
+                <div class="block-item locked" data-type="form">
+                    <span class="block-icon">📋</span>
+                    <span class="block-name">form</span>
+                </div>
+                <div class="block-item locked" data-type="analytics">
+                    <span class="block-icon">📊</span>
+                    <span class="block-name">analytics</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-editor">
+            <div class="editor-header">
+                <div class="page-title">
+                    <input type="text" placeholder="your page title" id="pageTitle" value="my awesome page">
+                </div>
+                <div class="editor-actions">
+                    <button class="btn" id="previewBtn">preview</button>
+                    <button class="btn" id="settingsBtn">settings</button>
+                    <button class="btn btn-primary" id="publishBtn">publish</button>
+                </div>
+            </div>
+
+            <div class="editor-workspace">
+                <div class="canvas-area">
+                    <div class="phone-preview">
+                        <div class="preview-content" id="previewContent">
+                            <div class="drop-zone" id="dropZone">
+                                drag blocks here to start building
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="properties-panel">
+                    <h3>properties</h3>
+                    <div id="propertiesContent">
+                        <p style="color: #666666; font-size: 0.9rem;">select a block to edit its properties</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedBlock = null;
+        let blockCounter = 0;
+        let userPlan = 'free'; // This would come from Firebase
+
+        // Drag and drop functionality
+        const blockItems = document.querySelectorAll('.block-item:not(.locked)');
+        const dropZone = document.getElementById('dropZone');
+        const previewContent = document.getElementById('previewContent');
+        const propertiesContent = document.getElementById('propertiesContent');
+
+        blockItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', item.dataset.type);
+            });
+        });
+
+        // Handle locked blocks
+        document.querySelectorAll('.block-item.locked').forEach(item => {
+            item.addEventListener('click', () => {
+                showUpgradeNotice();
+            });
+        });
+
+        function showUpgradeNotice() {
+            const notice = document.createElement('div');
+            notice.className = 'upgrade-notice';
+            notice.innerHTML = `
+                <p>This feature requires a pro plan.</p>
+                <a href="plans.html">upgrade now →</a>
+            `;
+            
+            if (!document.querySelector('.upgrade-notice')) {
+                propertiesContent.insertBefore(notice, propertiesContent.firstChild);
+                setTimeout(() => notice.remove(), 5000);
+            }
+        }
+
+        previewContent.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        previewContent.addEventListener('dragleave', (e) => {
+            if (!previewContent.contains(e.relatedTarget)) {
+                dropZone.classList.remove('drag-over');
+            }
+        });
+
+        previewContent.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const blockType = e.dataTransfer.getData('text/plain');
+            createBlock(blockType);
+        });
+
+        function createBlock(type) {
+            blockCounter++;
+            const blockId = `block-${blockCounter}`;
+            
+            // Remove drop zone if this is the first block
+            if (dropZone.style.display !== 'none') {
+                dropZone.style.display = 'none';
+            }
+
+            const blockElement = document.createElement('div');
+            blockElement.className = 'content-block';
+            blockElement.dataset.type = type;
+            blockElement.dataset.id = blockId;
+
+            let blockContent = '';
+            
+            switch (type) {
+                case 'link':
+                    blockContent = `
+                        <a href="#" class="link-block" data-url="" data-title="new link">
+                            new link
+                        </a>
+                    `;
+                    break;
+                case 'text':
+                    blockContent = `
+                        <div class="text-block" data-content="add your text here">
+                            add your text here
+                        </div>
+                    `;
+                    break;
+                case 'image':
+                    blockContent = `
+                        <div class="image-block">
+                            <img src="/placeholder.svg?height=200&width=300" alt="placeholder" data-src="/placeholder.svg">
+                        </div>
+                    `;
+                    break;
+                case 'audio':
+                    blockContent = `
+                        <div class="audio-block">
+                            <p>🎵 audio player</p>
+                            <p style="font-size: 0.8rem; color: #666;">upload an audio file</p>
+                        </div>
+                    `;
+                    break;
+                case 'divider':
+                    blockContent = `
+                        <div style="height: 1px; background: #333; margin: 1rem 0;"></div>
+                    `;
+                    break;
+            }
+
+            blockElement.innerHTML = `
+                ${blockContent}
+                <div class="block-controls">
+                    <button class="control-btn" onclick="editBlock('${blockId}')">✏️</button>
+                    <button class="control-btn" onclick="deleteBlock('${blockId}')">🗑️</button>
+                </div>
+            `;
+
+            previewContent.appendChild(blockElement);
+            selectBlock(blockId);
+        }
+
+        function selectBlock(blockId) {
+            // Remove previous selection
+            document.querySelectorAll('.content-block').forEach(block => {
+                block.style.borderColor = '#333333';
+            });
+
+            const block = document.querySelector(`[data-id="${blockId}"]`);
+            if (block) {
+                block.style.borderColor = '#ffffff';
+                selectedBlock = blockId;
+                showProperties(block);
+            }
+        }
+
+        function showProperties(block) {
+            const type = block.dataset.type;
+            let propertiesHTML = `<h3>${type} properties</h3>`;
+
+            switch (type) {
+                case 'link':
+                    const linkElement = block.querySelector('.link-block');
+                    propertiesHTML += `
+                        <div class="property-group">
+                            <label>title</label>
+                            <input type="text" id="linkTitle" value="${linkElement.dataset.title}" onchange="updateLinkTitle()">
+                        </div>
+                        <div class="property-group">
+                            <label>url</label>
+                            <input type="url" id="linkUrl" value="${linkElement.dataset.url}" onchange="updateLinkUrl()">
+                        </div>
+                        <div class="property-group">
+                            <label>style</label>
+                            <select id="linkStyle" onchange="updateLinkStyle()">
+                                <option value="default">default</option>
+                                <option value="button">button</option>
+                                <option value="minimal">minimal</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'text':
+                    const textElement = block.querySelector('.text-block');
+                    propertiesHTML += `
+                        <div class="property-group">
+                            <label>content</label>
+                            <textarea id="textContent" rows="4" onchange="updateTextContent()">${textElement.dataset.content}</textarea>
+                        </div>
+                        <div class="property-group">
+                            <label>alignment</label>
+                            <select id="textAlign" onchange="updateTextAlign()">
+                                <option value="left">left</option>
+                                <option value="center">center</option>
+                                <option value="right">right</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'image':
+                    propertiesHTML += `
+                        <div class="property-group">
+                            <label>image url</label>
+                            <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg" onchange="updateImageUrl()">
+                        </div>
+                        <div class="property-group">
+                            <label>alt text</label>
+                            <input type="text" id="imageAlt" placeholder="describe the image" onchange="updateImageAlt()">
+                        </div>
+                        <div class="property-group">
+                            <label>upload image</label>
+                            <input type="file" id="imageFile" accept="image/*" onchange="uploadImage()">
+                        </div>
+                    `;
+                    break;
+                case 'audio':
+                    propertiesHTML += `
+                        <div class="property-group">
+                            <label>audio file</label>
+                            <input type="file" id="audioFile" accept="audio/*" onchange="uploadAudio()">
+                        </div>
+                        <div class="property-group">
+                            <label>title</label>
+                            <input type="text" id="audioTitle" placeholder="track title" onchange="updateAudioTitle()">
+                        </div>
+                    `;
+                    break;
+            }
+
+            propertiesContent.innerHTML = propertiesHTML;
+        }
+
+        function updateLinkTitle() {
+            const title = document.getElementById('linkTitle').value;
+            const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+            const linkElement = block.querySelector('.link-block');
+            linkElement.textContent = title;
+            linkElement.dataset.title = title;
+        }
+
+        function updateLinkUrl() {
+            const url = document.getElementById('linkUrl').value;
+            const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+            const linkElement = block.querySelector('.link-block');
+            linkElement.href = url;
+            linkElement.dataset.url = url;
+        }
+
+        function updateTextContent() {
+            const content = document.getElementById('textContent').value;
+            const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+            const textElement = block.querySelector('.text-block');
+            textElement.textContent = content;
+            textElement.dataset.content = content;
+        }
+
+        function updateImageUrl() {
+            const url = document.getElementById('imageUrl').value;
+            const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+            const imgElement = block.querySelector('img');
+            imgElement.src = url;
+            imgElement.dataset.src = url;
+        }
+
+        function editBlock(blockId) {
+            selectBlock(blockId);
+        }
+
+        function deleteBlock(blockId) {
+            const block = document.querySelector(`[data-id="${blockId}"]`);
+            if (block) {
+                block.remove();
+                
+                // Show drop zone if no blocks left
+                if (previewContent.children.length === 1) {
+                    dropZone.style.display = 'flex';
+                }
+                
+                propertiesContent.innerHTML = '<p style="color: #666666; font-size: 0.9rem;">select a block to edit its properties</p>';
+            }
+        }
+
+        // Header button functionality
+        document.getElementById('previewBtn').addEventListener('click', () => {
+            window.open('preview.html', '_blank');
+        });
+
+        document.getElementById('publishBtn').addEventListener('click', () => {
+            // Save to Firebase and publish
+            alert('Page published! 🎉');
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            const userCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('user='));
+            if (!userCookie) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Load user's existing page if any
+            loadUserPage();
+        });
+
+        function loadUserPage() {
+            // This would load from Firebase in a real app
+            console.log('Loading user page...');
+        }
+
+        function uploadImage() {
+            const file = document.getElementById('imageFile').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+                    const imgElement = block.querySelector('img');
+                    imgElement.src = e.target.result;
+                    imgElement.dataset.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadAudio() {
+            const file = document.getElementById('audioFile').files[0];
+            if (file) {
+                const block = document.querySelector(`[data-id="${selectedBlock}"]`);
+                const audioBlock = block.querySelector('.audio-block');
+                audioBlock.innerHTML = `
+                    <audio controls style="width: 100%;">
+                        <source src="${URL.createObjectURL(file)}" type="${file.type}">
+                        Your browser does not support the audio element.
+                    </audio>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
