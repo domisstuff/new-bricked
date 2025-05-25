@@ -2,12 +2,19 @@
   "functions": {
     "api/publish.js": {
       "maxDuration": 10
+    },
+    "api/[username].js": {
+      "maxDuration": 5
     }
   },
   "rewrites": [
     {
       "source": "/api/publish",
       "destination": "/api/publish.js"
+    },
+    {
+      "source": "/:username",
+      "destination": "/api/:username"
     }
   ]
 }
