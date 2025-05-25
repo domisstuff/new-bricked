@@ -574,9 +574,22 @@
             const decodedValue = decodeURIComponent(cookieValue);
             console.log('Decoded cookie value:', decodedValue);
             
-            const userData = JSON.parse(decodedValue);
-            console.log('Parsed user data:', userData);
-            return userData;
+            // Check if it's JSON or just a UID
+            if (decodedValue.startsWith('{')) {
+                // It's JSON, parse it
+                const userData = JSON.parse(decodedValue);
+                console.log('Parsed user data:', userData);
+                return userData;
+            } else {
+                // It's just a UID, create a user object
+                const userData = {
+                    uid: decodedValue,
+                    username: decodedValue.substring(0, 8), // Use first 8 chars as username
+                    displayName: `User ${decodedValue.substring(0, 8)}`
+                };
+                console.log('Created user data from UID:', userData);
+                return userData;
+            }
         } catch (e) {
             console.error('Error parsing user cookie:', e);
             console.log('Raw cookie value:', userCookie);
@@ -584,15 +597,27 @@
     }
     
     // Try different cookie names that might be used
-    const altCookieNames = ['currentUser', 'authUser', 'loggedInUser'];
+    const altCookieNames = ['currentUser', 'authUser', 'loggedInUser', 'firebase-user'];
     for (const cookieName of altCookieNames) {
         const altCookie = cookies.find(cookie => cookie.trim().startsWith(`${cookieName}=`));
         if (altCookie) {
             try {
                 const cookieValue = altCookie.split('=')[1];
-                const userData = JSON.parse(decodeURIComponent(cookieValue));
-                console.log(`Found user data in ${cookieName}:`, userData);
-                return userData;
+                const decodedValue = decodeURIComponent(cookieValue);
+                
+                if (decodedValue.startsWith('{')) {
+                    const userData = JSON.parse(decodedValue);
+                    console.log(`Found user data in ${cookieName}:`, userData);
+                    return userData;
+                } else {
+                    const userData = {
+                        uid: decodedValue,
+                        username: decodedValue.substring(0, 8),
+                        displayName: `User ${decodedValue.substring(0, 8)}`
+                    };
+                    console.log(`Created user data from ${cookieName} UID:`, userData);
+                    return userData;
+                }
             } catch (e) {
                 console.error(`Error parsing ${cookieName} cookie:`, e);
             }
