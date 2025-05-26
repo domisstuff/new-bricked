@@ -2,6 +2,7 @@
   "name": "bricked-lol-biolink",
   "version": "1.0.0",
   "description": "Biolink website builder",
+  "type": "module",
   "scripts": {
     "build": "echo 'Static site - no build needed'"
   },
