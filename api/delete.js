@@ -1,3 +1,11 @@
+const API_SECRET = process.env.DELETE_API_SECRET
+const clientKey = req.headers["authorization"]
+
+if (!API_SECRET || clientKey !== `Bearer ${API_SECRET}`) {
+  return res.status(401).json({ error: "Unauthorized" })
+}
+
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "DELETE, OPTIONS")
