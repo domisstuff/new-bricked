@@ -1,4 +1,3 @@
-// Serve API - fetches raw HTML string from Redis and sends as text/html
 export default async function serveHandler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
@@ -37,8 +36,8 @@ export default async function serveHandler(req, res) {
       return res.status(404).send("Page not found")
     }
 
-    // Get raw HTML string from Redis (as text)
-    const htmlContent = await response.text()
+    const data = await response.json()
+    const htmlContent = data.result
 
     if (!htmlContent) {
       return res.status(404).send("Page not found")
