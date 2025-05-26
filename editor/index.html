@@ -1216,13 +1216,18 @@ async function publishPage(data) {
     }
 }
 
-      function escapeHTML(str) {
-    return String(str)
+ function escapeHTML(str) {
+    return String(str || "")
+        .trim()
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+}
+
+function sanitizeText(str) {
+    return escapeHTML(str).replace(/\s+/g, " ").trim();
 }
 
 function sanitizeURL(url) {
@@ -1237,73 +1242,67 @@ function sanitizeURL(url) {
 function generatePublishedPageHTML(data) {
     const { title, username, bio, avatar, blocks } = data;
 
-    const safeTitle = escapeHTML(title || username || "Profile");
-    const safeUsername = escapeHTML(username || "user");
-    const safeBio = escapeHTML(bio || `${safeUsername}'s biolink page`);
+    const safeTitle = sanitizeText(title || username || "Profile");
+    const safeUsername = sanitizeText(username || "user");
+    const safeBio = bio ? sanitizeText(bio) : "";
     const safeAvatar = avatar && typeof avatar === "string" && avatar.startsWith("http") ? escapeHTML(avatar) : null;
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${safeTitle} - bricked.lol</title>
-    <meta name="description" content="${safeBio}" />
-    <style>
-        /* STYLES OMITTED FOR BREVITY - Use same as before */
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${safeTitle} - bricked.lol</title>
+<meta name="description" content="${safeBio || `${safeUsername}'s biolink page`}" />
+<style>
+/* your existing styles here */
+</style>
 </head>
 <body>
-    <div class="background-grid"></div>
-    <div class="page-container">
-        <div class="profile-header">
-            <div class="profile-avatar">${safeAvatar ? `<img src="${safeAvatar}" alt="${safeUsername}" />` : "👤"}</div>
-            <h1 class="profile-name">${safeTitle}</h1>
-            <div class="profile-username">@${safeUsername}</div>
-            ${bio ? `<p class="profile-bio">${escapeHTML(bio)}</p>` : ""}
-        </div>
-        ${Array.isArray(blocks) && blocks.length ? `
-        <div class="content-blocks">
-            ${blocks.map(block => {
-                if (!block || typeof block !== "object" || !block.type) return "";
-
-                switch (block.type) {
-                    case "link":
-                        const linkTitle = escapeHTML(block.title || "Untitled Link");
-                        const linkUrl = sanitizeURL(block.url || "#");
-                        return `<div class="content-block"><a href="${linkUrl}" class="link-block" target="_blank" rel="noopener noreferrer">${linkTitle}</a></div>`;
-
-                    case "text":
-                        const textAlign = ["left", "center", "right", "justify"].includes(block.align) ? block.align : "left";
-                        const textContent = escapeHTML(block.content || "Sample text");
-                        return `<div class="content-block"><div class="text-block" style="text-align: ${textAlign}">${textContent}</div></div>`;
-
-                    case "image":
-                        if (!block.src || block.src.includes("placeholder")) return "";
-                        const imageUrl = sanitizeURL(block.src);
-                        const imageAlt = escapeHTML(block.alt || "Image");
-                        return `<div class="content-block"><div class="image-block"><img src="${imageUrl}" alt="${imageAlt}" loading="lazy" /></div></div>`;
-
-                    case "audio":
-                        if (!block.src) return "";
-                        const audioUrl = sanitizeURL(block.src);
-                        const audioTitle = escapeHTML(block.title || "Audio Track");
-                        return `<div class="content-block"><div class="audio-block"><p>🎵 ${audioTitle}</p><audio controls><source src="${audioUrl}" type="audio/mpeg">Your browser does not support the audio element.</audio></div></div>`;
-
-                    case "divider":
-                        return `<div class="content-block"><div class="divider-block"></div></div>`;
-
-                    default:
-                        return "";
-                }
-            }).join("")}
-        </div>
-        ` : ""}
-        <div class="footer"><a href="/">create your own with bricked.lol</a></div>
+<div class="background-grid"></div>
+<div class="page-container">
+    <div class="profile-header">
+        <div class="profile-avatar">${safeAvatar ? `<img src="${safeAvatar}" alt="${safeUsername}" />` : "👤"}</div>
+        <h1 class="profile-name">${safeTitle}</h1>
+        <div class="profile-username">@${safeUsername}</div>
+        ${bio ? `<p class="profile-bio">${safeBio}</p>` : ""}
     </div>
+    ${Array.isArray(blocks) && blocks.length ? `
+    <div class="content-blocks">
+        ${blocks.map(block => {
+            if (!block || typeof block !== "object" || !block.type) return "";
+
+            switch (block.type) {
+                case "link":
+                    return `<div class="content-block"><a href="${sanitizeURL(block.url || "#")}" class="link-block" target="_blank" rel="noopener noreferrer">${sanitizeText(block.title || "Untitled Link")}</a></div>`;
+
+                case "text":
+                    const align = ["left", "center", "right", "justify"].includes(block.align) ? block.align : "left";
+                    return `<div class="content-block"><div class="text-block" style="text-align: ${align}">${sanitizeText(block.content || "Sample text")}</div></div>`;
+
+                case "image":
+                    if (!block.src || block.src.includes("placeholder")) return "";
+                    return `<div class="content-block"><div class="image-block"><img src="${sanitizeURL(block.src)}" alt="${sanitizeText(block.alt || "Image")}" loading="lazy" /></div></div>`;
+
+                case "audio":
+                    if (!block.src) return "";
+                    return `<div class="content-block"><div class="audio-block"><p>🎵 ${sanitizeText(block.title || "Audio Track")}</p><audio controls><source src="${sanitizeURL(block.src)}" type="audio/mpeg">Your browser does not support the audio element.</audio></div></div>`;
+
+                case "divider":
+                    return `<div class="content-block"><div class="divider-block"></div></div>`;
+
+                default:
+                    return "";
+            }
+        }).join("")}
+    </div>
+    ` : ""}
+    <div class="footer"><a href="/">create your own with bricked.lol</a></div>
+</div>
 </body>
 </html>`;
 }
+
 
         // Initialize everything
         function initialize() {
