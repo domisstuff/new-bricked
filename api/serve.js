@@ -48,13 +48,13 @@ export default async function handler(req, res) {
     console.log("Looking for page:", cleanUsername)
 
     // Use REST API to get data from Redis
-    const key = page:${cleanUsername}
+    const key = `page:${cleanUsername}`
     console.log("Looking for Redis key:", key)
 
     try {
-      const response = await fetch(${kvUrl}/get/${encodeURIComponent(key)}, {
+      const response = await fetch(`${kvUrl}/get/${encodeURIComponent(key)}`, {
         headers: {
-          Authorization: Bearer ${kvToken},
+          Authorization: `Bearer ${kvToken}`,
           "Content-Type": "application/json",
         },
       })
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       console.log("Redis API response status:", response.status)
 
       if (!response.ok) {
-        throw new Error(Redis API error: ${response.status} ${response.statusText})
+        throw new Error(`Redis API error: ${response.status} ${response.statusText}`)
       }
 
       const data = await response.json()
@@ -77,22 +77,21 @@ export default async function handler(req, res) {
 
       console.log("Found page, serving HTML (length:", htmlContent.length, ")")
 
-      // Set content type to HTML and return the stored content
       res.setHeader("Content-Type", "text/html; charset=utf-8")
       res.setHeader("Cache-Control", "public, max-age=300")
       return res.status(200).send(htmlContent)
     } catch (redisError) {
       console.error("Redis API error:", redisError)
-      return res.status(500).send(getErrorPage(Redis API failed: ${redisError.message}))
+      return res.status(500).send(getErrorPage(`Redis API failed: ${redisError.message}`))
     }
   } catch (error) {
     console.error("Error in serve function:", error)
-    return res.status(500).send(getErrorPage(Server error: ${error.message}))
+    return res.status(500).send(getErrorPage(`Server error: ${error.message}`))
   }
 }
 
 function get404Page(username) {
-  return <!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -125,11 +124,11 @@ function get404Page(username) {
     <a href="/">← Back to Home</a>
   </div>
 </body>
-</html>
+</html>`
 }
 
 function getErrorPage(errorMessage) {
-  return <!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -168,5 +167,5 @@ function getErrorPage(errorMessage) {
     <a href="/">← Back to Home</a>
   </div>
 </body>
-</html>
+</html>`
 }
