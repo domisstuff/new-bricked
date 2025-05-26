@@ -17,6 +17,10 @@
     {
       "source": "/:username",
       "destination": "/api/serve?username=:username"
+    },
+    {
+      "source": "/api/delete",
+      "destination": "/api/delete.js"
     }
   ]
 }
