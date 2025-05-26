@@ -1,5 +1,5 @@
+// publish.js
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
   res.setHeader("Access-Control-Allow-Headers", "Content-Type")
@@ -15,35 +15,22 @@ export default async function handler(req, res) {
   try {
     const { username, files } = req.body
 
-    console.log("Received publish request:", { username, hasFiles: !!files })
-
     if (!username || !files || !files["index.html"]) {
       return res.status(400).json({ error: "Invalid data: missing username or HTML content" })
     }
 
-    // Check environment variables
     const kvUrl = process.env.KV_REST_API_URL
     const kvToken = process.env.KV_REST_API_TOKEN
-
-    console.log("Environment variables check:", {
-      hasKvUrl: !!kvUrl,
-      hasKvToken: !!kvToken,
-    })
 
     if (!kvUrl || !kvToken) {
       return res.status(500).json({ error: "Redis environment variables not configured" })
     }
 
-    // Sanitize username
     const cleanUsername = username.replace(/[^a-zA-Z0-9_-]/g, "")
-
     if (!cleanUsername) {
       return res.status(400).json({ error: "Invalid username: contains invalid characters" })
     }
 
-    console.log("Storing page for username:", cleanUsername)
-
-    // Store the HTML content in Redis using REST API
     const key = `page:${cleanUsername}`
 
     try {
@@ -53,22 +40,19 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${kvToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(files["index.html"]),
+        // Fix: wrap the HTML string in quotes (stringify the object with a 'value' key)
+        body: JSON.stringify({ value: files["index.html"] }),
       })
-
-      console.log("Redis set response status:", response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(`Redis API error: ${response.status} ${errorText}`)
       }
 
-      const result = await response.json()
-      console.log("Redis set result:", result)
+      await response.json()
 
-      // Also store metadata
       const metaKey = `meta:${cleanUsername}`
-      const metaResponse = await fetch(`${kvUrl}/set/${encodeURIComponent(metaKey)}`, {
+      await fetch(`${kvUrl}/set/${encodeURIComponent(metaKey)}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${kvToken}`,
@@ -81,22 +65,18 @@ export default async function handler(req, res) {
         }),
       })
 
-      console.log("Successfully stored page in KV")
-
       return res.status(200).json({
         success: true,
         url: `/${cleanUsername}`,
         message: "Page published successfully!",
       })
     } catch (redisError) {
-      console.error("Redis API error:", redisError)
       return res.status(500).json({
         error: "Failed to store in Redis",
         details: redisError.message,
       })
     }
   } catch (error) {
-    console.error("Publish error:", error)
     return res.status(500).json({
       error: "Failed to publish page",
       details: error.message,
