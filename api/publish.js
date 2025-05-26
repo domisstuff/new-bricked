@@ -1,4 +1,3 @@
-// Publish API - stores raw HTML string in Redis (no wrapping)
 export default async function publishHandler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*")
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -28,14 +27,14 @@ export default async function publishHandler(req, res) {
 
     const key = `page:${cleanUsername}`
 
-    // Store raw HTML string directly (no wrapping in {result: ...})
+    // Store the raw HTML string wrapped in { result: string }
     const response = await fetch(`${kvUrl}/set/${encodeURIComponent(key)}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${kvToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(files["index.html"]), 
+      body: JSON.stringify({ result: files["index.html"] }),
     })
 
     if (!response.ok) {
