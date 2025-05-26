@@ -41,7 +41,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${kvToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(files["index.html"]),
+      body: JSON.stringify({ result: files["index.html"] }), // FIXED: wrap in an object
     })
 
     console.log("Redis set response status:", response.status)
