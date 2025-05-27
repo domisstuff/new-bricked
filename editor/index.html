@@ -1255,8 +1255,183 @@ function generatePublishedPageHTML(data) {
 <title>${safeTitle} - bricked.lol</title>
 <meta name="description" content="${safeBio || `${safeUsername}'s biolink page`}" />
 <style>
-/* your existing styles here */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        background: #0a0a0a;
+        color: #ffffff;
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .background-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: -1;
+        animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+
+    .page-container {
+        max-width: 400px;
+        width: 100%;
+        background: rgba(255,255,255,0.02);
+        backdrop-filter: blur(10px);
+        border: 1px solid #222222;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.2);
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        overflow: hidden;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+    }
+
+    .profile-username {
+        color: #888888;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .profile-bio {
+        color: #cccccc;
+        line-height: 1.5;
+        font-size: 0.9rem;
+    }
+
+    .content-blocks {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .content-block {
+        animation: fadeInUp 0.6s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .link-block {
+        display: block;
+        text-decoration: none;
+        color: #ffffff;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .link-block:hover {
+        background: rgba(255,255,255,0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    .text-block {
+        color: #cccccc;
+        line-height: 1.6;
+        padding: 1rem;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .image-block {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .image-block img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .audio-block {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .audio-block audio {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .divider-block {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        margin: 1rem 0;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
+
 </head>
 <body>
 <div class="background-grid"></div>
