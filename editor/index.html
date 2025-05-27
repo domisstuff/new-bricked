@@ -1348,10 +1348,14 @@ function generatePublishedPageHTML(data) {
     // Save initial data
     savePreviewData();
 }
-
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
         // Start everything when page loads
         document.addEventListener('DOMContentLoaded', initialize);
 
+
+await wait(2000)
                 console.log(`
 ░██╗░░░░░░░██╗░█████╗░██████╗░███╗░░██╗██╗███╗░░██╗░██████╗░
 ░██║░░██╗░░██║██╔══██╗██╔══██╗████╗░██║██║████╗░██║██╔════╝░
