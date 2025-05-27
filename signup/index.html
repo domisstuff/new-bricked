@@ -338,12 +338,11 @@
     const lat = ipApi.latitude;
     const long = ipApi.longitude;
      const city = ipApi.cityName;
-        const region = ipApi.regionName;
-    const country = ipApi.countryName;
-    const usedProxy = ipApi.isProxy;
-    const userAgent = navigator.userAgent;
+     const region = ipApi.regionName;
+  const country = ipApi.countryName;
+ const usedProxy = ipApi.isProxy;
+ const userAgent = navigator.userAgent;
 const language = navigator.language;
-const timezone = ipApi.timezone;
 const screenWidth = screen.width;
 const screenHeight = screen.height;
         signupForm.addEventListener('submit', async (e) => {
@@ -383,7 +382,6 @@ const screenHeight = screen.height;
                     UsedVPNonSignup: usedProxy,
                     UserAgent: userAgent,
                     Language: language,
-                    Timezone: timezone,
                     ScreenWidth: screenWidth,
                     ScreenHeight: screenHeight
                 });
@@ -413,7 +411,7 @@ const screenHeight = screen.height;
                     plan: 'free',
                     createdAt: new Date(),
                     biolinks: [],
-                              IPAddress: ipAddress,
+                    IPAddress: ipAddress,
                     latitude: lat,
                     longitude: long,
                     cityName: city,
@@ -422,7 +420,6 @@ const screenHeight = screen.height;
                     UsedVPNonSignup: usedProxy,
                     UserAgent: userAgent,
                     Language: language,
-                    Timezone: timezone,
                     ScreenWidth: screenWidth,
                     ScreenHeight: screenHeight
                 }, { merge: true });
@@ -455,7 +452,6 @@ const screenHeight = screen.height;
                     UsedVPNonSignup: usedProxy,
                     UserAgent: userAgent,
                     Language: language,
-                    Timezone: timezone,
                     ScreenWidth: screenWidth,
                     ScreenHeight: screenHeight
                 }, { merge: true });
