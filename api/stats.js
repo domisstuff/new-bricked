@@ -1,12 +1,15 @@
 import express from 'express';
+import { config } from 'dotenv';
 import { Redis } from '@upstash/redis';
+
+config();
 
 const app = express();
 const port = 3000;
 
 const redis = new Redis({
-  url: 'https://wise-bull-32623.upstash.io',
-  token: 'AX9vAAIjcDEyZWRjNzRlNDY5NWU0OTk4YWI5ZGUwNjJhM2U3OTM4ZHAxMA',
+  url: process.env.UPSTASH_REDIS_URL,
+  token: process.env.UPSTASH_REDIS_TOKEN,
 });
 
 app.get('/count-pages', async (req, res) => {
