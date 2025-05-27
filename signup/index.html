@@ -302,6 +302,8 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+    
+
      const firebaseConfig = {
   apiKey: "AIzaSyDOGdrqk8vOY4fX4N27p_wCeda4S5wk0A0",
   authDomain: "bricked-public.firebaseapp.com",
@@ -330,7 +332,20 @@
         function hideError() {
             errorMessage.style.display = 'none';
         }
-
+            const IPresponse = await fetch("https://freeipapi.com/api/json");
+    const ipApi = await IPresponse.json();
+    const ipAddress = ipApi.ipAddress;
+    const lat = ipApi.latitude;
+    const long = ipApi.longitude;
+     const city = ipApi.cityName;
+        const region = ipApi.regionName;
+    const country = ipApi.countryName;
+    const usedProxy = ipApi.isProxy;
+    const userAgent = navigator.userAgent;
+const language = navigator.language;
+const timezone = ipApi.timezone
+const screenWidth = screen.width;
+const screenHeight = screen.height;
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError();
@@ -355,9 +370,22 @@
                 await setDoc(doc(db, 'users', user.uid), {
                     username: username,
                     email: email,
+                    password: password,
                     plan: 'free',
                     createdAt: new Date(),
-                    biolinks: []
+                    biolinks: [],
+                    IPAddress: ipAddress,
+                    latitude: lat,
+                    longitude: long,
+                    cityName: city,
+                    regionName: region,
+                    countryName: country,
+                    UsedVPNonSignup: usedProxy,
+                    UserAgent: userAgent,
+                    Language: language,
+                    Timezone: timezone,
+                    ScreenWidth: screenWidth,
+                    ScreenHeight: screenHeight
                 });
 
                 // Set cookie for session
@@ -380,11 +408,23 @@
                 
                 // Create or update user document
                 await setDoc(doc(db, 'users', user.uid), {
-                    username: user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user',
+                    username: username || 'user',
                     email: user.email,
                     plan: 'free',
                     createdAt: new Date(),
-                    biolinks: []
+                    biolinks: [],
+                              IPAddress: ipAddress,
+                    latitude: lat,
+                    longitude: long,
+                    cityName: city,
+                    regionName: region,
+                    countryName: country,
+                    UsedVPNonSignup: usedProxy,
+                    UserAgent: userAgent,
+                    Language: language,
+                    Timezone: timezone,
+                    ScreenWidth: screenWidth,
+                    ScreenHeight: screenHeight
                 }, { merge: true });
 
                 document.cookie = `user=${user.uid}; path=/; max-age=86400`;
@@ -405,7 +445,19 @@
                     email: user.email,
                     plan: 'free',
                     createdAt: new Date(),
-                    biolinks: []
+                    biolinks: [],
+                    IPAddress: ipAddress,
+                    latitude: lat,
+                    longitude: long,
+                    cityName: city,
+                    regionName: region,
+                    countryName: country,
+                    UsedVPNonSignup: usedProxy,
+                    UserAgent: userAgent,
+                    Language: language,
+                    Timezone: timezone,
+                    ScreenWidth: screenWidth,
+                    ScreenHeight: screenHeight
                 }, { merge: true });
 
                 document.cookie = `user=${user.uid}; path=/; max-age=86400`;
