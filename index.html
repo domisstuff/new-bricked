@@ -168,14 +168,20 @@
             font-size: 0.9rem;
         }
 
-        .nav {
-               display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-            gap: 1rem;
-            z-index: 100;
-        }
+   .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 0;
+  background: rgba(10, 10, 10, 0.95);
+  border-bottom: 1px solid #222;
+  z-index: 1000;
+}
 
         .nav a {
             color: #888888;
