@@ -36,8 +36,8 @@ export default async function serveHandler(req, res) {
       return res.status(404).send("Page not found")
     }
 
-    const data = await response.json()
-    const htmlContent = data.result
+   const htmlContent = await response.text()
+
 
     if (!htmlContent) {
       return res.status(404).send("Page not found")
