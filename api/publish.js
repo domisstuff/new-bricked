@@ -28,15 +28,15 @@ export default async function publishHandler(req, res) {
     const key = `page:${cleanUsername}`
 
     // Store the raw HTML string wrapped in { result: string }
-    const response = await fetch(`${kvUrl}/set/${encodeURIComponent(key)}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${kvToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(files["index.html"]),
+const response = await fetch(`${kvUrl}/set/${encodeURIComponent(key)}`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${kvToken}`,
+    "Content-Type": "text/plain",
+  },
+  body: files["index.html"],
+})
 
-    })
 
     if (!response.ok) {
       const errorText = await response.text()
