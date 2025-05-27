@@ -21,6 +21,10 @@
     {
       "source": "/api/delete",
       "destination": "/api/delete.js"
+    };
+    {
+      "source": "/api/stats",
+      "destination": "/api/stats.js"
     }
   ]
 }
