@@ -34,7 +34,8 @@ export default async function publishHandler(req, res) {
         Authorization: `Bearer ${kvToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ result: files["index.html"] }),
+      body: JSON.stringify(files["index.html"]),
+
     })
 
     if (!response.ok) {
