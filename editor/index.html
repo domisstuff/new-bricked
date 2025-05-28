@@ -626,10 +626,9 @@
     }
     
     // Try localStorage as fallback
-    const userStorage = localStorage.getItem('currentUser');
-    if (userStorage) {
+    const userData = await getUserFromCookie(userCookie);
+    if (userData) {
         try {
-            const userData = JSON.parse(userStorage);
             console.log('Found user data in localStorage:', userData);
             return userData;
         } catch (e) {
