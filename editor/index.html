@@ -548,12 +548,29 @@
         </div>
     </div>
 
-<script>
+<script type="module">
     let selectedBlock = null;
     let blockCounter = 0;
     let userPlan = 'free';
     let blocks = [];
     let currentUser = null;
+
+
+     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDOGdrqk8vOY4fX4N27p_wCeda4S5wk0A0",
+  authDomain: "bricked-public.firebaseapp.com",
+  projectId: "bricked-public",
+  storageBucket: "bricked-public.firebasestorage.app",
+  messagingSenderId: "898350402492",
+  appId: "1:898350402492:web:ae6751b7ec6aeead3bf9b9",
+  measurementId: "G-4PBTF3DTVJ"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
     async function getUserFromCookie(userCookie) {
         if (userCookie) {
