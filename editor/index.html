@@ -548,97 +548,99 @@
         </div>
     </div>
 
-    <script>
-        let selectedBlock = null;
-        let blockCounter = 0;
-        let userPlan = 'free';
-        let blocks = [];
-        let currentUser = null;
+<script>
+    let selectedBlock = null;
+    let blockCounter = 0;
+    let userPlan = 'free';
+    let blocks = [];
+    let currentUser = null;
 
-        // Get current user from cookies
-        function getCurrentUser() {
-    console.log('All cookies:', document.cookie);
-    
-    // Try to get from cookie first
-    const cookies = document.cookie.split(';');
-    console.log('Cookie array:', cookies);
-    
-    const userCookie = cookies.find(cookie => cookie.trim().startsWith('user='));
-    console.log('Found user cookie:', userCookie);
-  async function getUserFromCookie(userCookie) {
-    if (userCookie) {
-        try {
-            const cookieValue = userCookie.split('=')[1];
-            const decodedValue = decodeURIComponent(cookieValue);
-
-            if (decodedValue.startsWith('{')) {
-                const userData = JSON.parse(decodedValue);
-                return userData;
-            } else {
-                const db = getFirestore(app);
-                const docRef = doc(db, 'users', decodedValue);
-                const userSnap = await getDoc(docRef);
-
-                if (userSnap.exists()) {
-                    return {
-                        uid: decodedValue,
-                        username: userSnap.data().username,
-                        displayName: userSnap.data().username
-                    };
-                } else {
-                    return null;
-                }
-            }
-        } catch (e) {
-            console.error('Error parsing user cookie:', e);
-        }
-    }
-}
-
-
-    
-    // Try different cookie names that might be used
-    const altCookieNames = ['currentUser', 'authUser', 'loggedInUser', 'firebase-user'];
-    for (const cookieName of altCookieNames) {
-        const altCookie = cookies.find(cookie => cookie.trim().startsWith(`${cookieName}=`));
-        if (altCookie) {
+    async function getUserFromCookie(userCookie) {
+        if (userCookie) {
             try {
-                const cookieValue = altCookie.split('=')[1];
+                const cookieValue = userCookie.split('=')[1];
                 const decodedValue = decodeURIComponent(cookieValue);
-                
+
                 if (decodedValue.startsWith('{')) {
                     const userData = JSON.parse(decodedValue);
-                    console.log(`Found user data in ${cookieName}:`, userData);
                     return userData;
                 } else {
-                    const userData = {
-                        uid: decodedValue,
-                        username: decodedValue.substring(0, 8),
-                        displayName: `User ${decodedValue.substring(0, 8)}`
-                    };
-                    console.log(`Created user data from ${cookieName} UID:`, userData);
-                    return userData;
+                    const db = getFirestore(app);
+                    const docRef = doc(db, 'users', decodedValue);
+                    const userSnap = await getDoc(docRef);
+
+                    if (userSnap.exists()) {
+                        return {
+                            uid: decodedValue,
+                            username: userSnap.data().username,
+                            displayName: userSnap.data().username
+                        };
+                    } else {
+                        return null;
+                    }
                 }
             } catch (e) {
-                console.error(`Error parsing ${cookieName} cookie:`, e);
+                console.error('Error parsing user cookie:', e);
             }
         }
+        return null;
     }
-    
-    // Try localStorage as fallback
-    const userData = await getUserFromCookie(userCookie);
-    if (userData) {
-        try {
-            console.log('Found user data in localStorage:', userData);
-            return userData;
-        } catch (e) {
-            console.error('Error parsing user storage:', e);
+
+    async function getCurrentUser() {
+        console.log('All cookies:', document.cookie);
+
+        const cookies = document.cookie.split(';');
+        console.log('Cookie array:', cookies);
+
+        const userCookie = cookies.find(cookie => cookie.trim().startsWith('user='));
+        console.log('Found user cookie:', userCookie);
+
+        if (userCookie) {
+            const userData = await getUserFromCookie(userCookie);
+            if (userData) return userData;
         }
+
+        const altCookieNames = ['currentUser', 'authUser', 'loggedInUser', 'firebase-user'];
+        for (const cookieName of altCookieNames) {
+            const altCookie = cookies.find(cookie => cookie.trim().startsWith(`${cookieName}=`));
+            if (altCookie) {
+                try {
+                    const cookieValue = altCookie.split('=')[1];
+                    const decodedValue = decodeURIComponent(cookieValue);
+
+                    if (decodedValue.startsWith('{')) {
+                        const userData = JSON.parse(decodedValue);
+                        console.log(`Found user data in ${cookieName}:`, userData);
+                        return userData;
+                    } else {
+                        const userData = {
+                            uid: decodedValue,
+                            username: decodedValue.substring(0, 8),
+                            displayName: `User ${decodedValue.substring(0, 8)}`
+                        };
+                        console.log(`Created user data from ${cookieName} UID:`, userData);
+                        return userData;
+                    }
+                } catch (e) {
+                    console.error(`Error parsing ${cookieName} cookie:`, e);
+                }
+            }
+        }
+
+        const userStorage = localStorage.getItem('currentUser');
+        if (userStorage) {
+            try {
+                const userData = JSON.parse(userStorage);
+                console.log('Found user data in localStorage:', userData);
+                return userData;
+            } catch (e) {
+                console.error('Error parsing user storage:', e);
+            }
+        }
+
+        console.log('No user data found anywhere');
+        return null;
     }
-    
-    console.log('No user data found anywhere');
-    return null;
-}
 
         // Get current page data
         function getCurrentPageData() {
