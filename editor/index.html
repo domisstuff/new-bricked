@@ -565,33 +565,36 @@
     
     const userCookie = cookies.find(cookie => cookie.trim().startsWith('user='));
     console.log('Found user cookie:', userCookie);
-   if (userCookie) {
-    try {
-        const cookieValue = userCookie.split('=')[1];
-        const decodedValue = decodeURIComponent(cookieValue);
+  async function getUserFromCookie(userCookie) {
+    if (userCookie) {
+        try {
+            const cookieValue = userCookie.split('=')[1];
+            const decodedValue = decodeURIComponent(cookieValue);
 
-        if (decodedValue.startsWith('{')) {
-            const userData = JSON.parse(decodedValue);
-            return userData;
-        } else {
-            const db = getFirestore(app);
-            const docRef = doc(db, 'users', decodedValue);
-            const userSnap = await getDoc(docRef);
-
-            if (userSnap.exists()) {
-                return {
-                    uid: decodedValue,
-                    username: userSnap.data().username,
-                    displayName: userSnap.data().username
-                };
+            if (decodedValue.startsWith('{')) {
+                const userData = JSON.parse(decodedValue);
+                return userData;
             } else {
-                return null;
+                const db = getFirestore(app);
+                const docRef = doc(db, 'users', decodedValue);
+                const userSnap = await getDoc(docRef);
+
+                if (userSnap.exists()) {
+                    return {
+                        uid: decodedValue,
+                        username: userSnap.data().username,
+                        displayName: userSnap.data().username
+                    };
+                } else {
+                    return null;
+                }
             }
+        } catch (e) {
+            console.error('Error parsing user cookie:', e);
         }
-    } catch (e) {
-        console.error('Error parsing user cookie:', e);
     }
 }
+
 
     
     // Try different cookie names that might be used
