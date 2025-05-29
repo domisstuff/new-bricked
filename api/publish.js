@@ -28,6 +28,8 @@ export default async function publishHandler(req, res) {
     const key = `page:${cleanUsername}`
 
     // Store the raw HTML string wrapped in { result: string }
+    console.log(typeof files["index.html"]); // Should print: string
+
 const response = await fetch(`${kvUrl}/set/${encodeURIComponent(key)}`, {
   method: "POST",
   headers: {
