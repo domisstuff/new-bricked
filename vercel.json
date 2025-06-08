@@ -21,6 +21,10 @@
     {
       "source": "/api/delete",
       "destination": "/api/delete.js"
+    },
+    {
+      "source": "/api/players",
+      "destination": "/api/players.js"
     }
   ]
 }
