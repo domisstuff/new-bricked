@@ -7,6 +7,9 @@
     },
     "api/serve.js": {
       "maxDuration": 5
+    },
+    "api/false.js": {
+      "maxDuration": 5
     }
   },
   "rewrites": [
@@ -19,12 +22,17 @@
       "destination": "/api/serve?username=:username"
     },
     {
-      "source": "/api/delete",
-      "destination": "/api/delete.js"
+      "source": "/api/false",
+      "destination": "/api/false.js"
     },
-    {
-      "source": "/api/players",
-      "destination": "/api/players.js"
+     {
+      "source": "/api/echo",
+      "destination": "/api/echo.js"
+    },
+     {
+      "source": "/api/true",
+      "destination": "/api/true.js"
     }
+    
   ]
 }
