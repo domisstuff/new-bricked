@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-app.get('/false-endpoint', (req, res) => {
+app.get('/false', (req, res) => {
   res.json(false);
 });
 
